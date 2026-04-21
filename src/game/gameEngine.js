@@ -197,12 +197,15 @@ export function advanceToNextTurn(state) {
 
   const nextIndex = getNextAlivePlayerIndex(state.players, state.currentPlayerIndex);
   const nextPlayer = state.players[nextIndex];
+  const mustCoup = nextPlayer.coins >= 10;
 
   return {
     ...state,
     currentPlayerIndex: nextIndex,
-    turnPhase: TURN_PHASES.PASS_DEVICE,
-    pendingAction: null,
+    turnPhase: mustCoup ? TURN_PHASES.TARGETING : TURN_PHASES.ACTION,
+    pendingAction: mustCoup
+      ? { type: ACTIONS.COUP, actingPlayerId: nextPlayer.id, targetPlayerId: null, coinsSpent: 0 }
+      : null,
     pendingBlock: null,
     pendingChallenge: null,
     responderQueue: [],
@@ -210,6 +213,11 @@ export function advanceToNextTurn(state) {
     afterLoseInfluence: null,
     exchangeCards: [],
     animatingAction: null,
-    log: [...state.log, `It is now ${nextPlayer.name}'s turn.`],
+    log: [
+      ...state.log,
+      mustCoup
+        ? `It is now ${nextPlayer.name}'s turn. They have 10+ coins and MUST perform a Coup!`
+        : `It is now ${nextPlayer.name}'s turn.`,
+    ],
   };
 }
